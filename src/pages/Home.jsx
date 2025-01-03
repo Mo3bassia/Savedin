@@ -1,8 +1,8 @@
 export default function Home({ language }) {
   return (
     <div className="pt-16">
-      <div className="max-w-4xl mx-auto rounded-2xl overflow-hidden bg-gradient-to-b from-white to-blue-50 dark:from-gray-900 dark:to-gray-800">
-        <div className="max-w-2xl mx-auto px-6 py-8">
+      <div className="max-w-4xl mx-auto rounded-2xl overflow-hidden bg-gradient-to-b from-white to-blue-50 dark:from-gray-900 dark:to-gray-800 animate-fade-in-up">
+        <div className="max-w-2xl mx-auto px-4">
           {/* Hero Section */}
           <div className="text-center mb-12">
             <div className="inline-block p-3 mb-6 rounded-2xl bg-gradient-to-tr from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900">
@@ -123,7 +123,7 @@ export default function Home({ language }) {
           </div>
 
           {/* CTA Section */}
-          <div className="text-center pb-12">
+          <div className="text-center pb-12 animate-fade-in-up [animation-delay:600ms]">
             <button className="inline-flex items-center px-8 py-3 text-base font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-500 dark:to-purple-500 rounded-xl hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
               {language === 'ar' ? 'ابدأ الآن' : 'Get Started'}
               <svg className="w-5 h-5 ml-2 -mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
