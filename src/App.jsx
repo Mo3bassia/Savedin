@@ -17,6 +17,12 @@ function AppContent() {
   const [darkMode, setDarkMode] = useLocalStorage(false, 'darkMode');
   const [posts, setPosts] = useLocalStorage([], 'posts');
 
+  // Get all unique tags from posts
+  const getAllTags = () => {
+    const allTags = posts.reduce((tags, post) => [...tags, ...post.tags], []);
+    return [...new Set(allTags)];
+  };
+
   const toggleLanguage = () => {
     setLanguage(prev => {
       if (prev !== 'ar') {
@@ -36,13 +42,11 @@ function AppContent() {
     const postWithTimestamp = {
       ...newPost,
       id: posts.length ? Math.max(...posts.map(p => p.id)) + 1 : 1,
-      createdAt: new Date().toISOString(),
+      createdAt: new Date().toISOString()
     };
-    setPosts([postWithTimestamp, ...posts]);
-    toast.success(language === 'ar' ? 'تم إضافة المنشور بنجاح' : 'Post added successfully', {
-      position: language === 'ar' ? "bottom-right" : "bottom-left",
-      rtl: language === 'ar'
-    });
+    setPosts(prevPosts => [postWithTimestamp, ...prevPosts]);
+    localStorage.setItem('posts', JSON.stringify([postWithTimestamp, ...posts]));
+    toast.success(language === 'ar' ? 'تمت الإضافة بنجاح' : 'Added successfully');
   };
 
   const deletePost = (postId) => {
@@ -140,7 +144,7 @@ function AppContent() {
         <main className="pt-10 px-4 dark:bg-gray-900">
           <Routes>
             <Route path="/" element={<Home language={language} posts={posts} />} />
-            <Route path="/new" element={<Add language={language} onAddPost={addPost} />} />
+            <Route path="/new" element={<Add language={language} onAddPost={addPost} existingTags={getAllTags()} />} />
             <Route path="/saved" element={
               <Notes 
                 language={language} 

@@ -1,13 +1,82 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
+import gsap from 'gsap';
 
 export default function Home({ language }) {
+  const heroRef = useRef(null);
+  const iconRef = useRef(null);
+  const titleRef = useRef(null);
+  const descRef = useRef(null);
+  const buttonRef = useRef(null);
+  const featuresRef = useRef(null);
+
+  useEffect(() => {
+    // Set initial states
+    gsap.set([iconRef.current, titleRef.current, descRef.current, buttonRef.current], {
+      opacity: 0,
+      y: 50
+    });
+
+    // Create timeline for better control
+    const tl = gsap.timeline();
+
+    tl.to(iconRef.current, {
+      opacity: 1,
+      y: 0,
+      duration: 0.8,
+      ease: "back.out(1.7)"
+    })
+    .to(titleRef.current, {
+      opacity: 1,
+      y: 0,
+      duration: 0.8,
+      ease: "back.out(1.7)"
+    }, "-=0.4")
+    .to(descRef.current, {
+      opacity: 1,
+      y: 0,
+      duration: 0.8,
+      ease: "back.out(1.7)"
+    }, "-=0.4")
+    .to(buttonRef.current, {
+      opacity: 1,
+      y: 0,
+      duration: 0.8,
+      ease: "back.out(1.7)"
+    }, "-=0.4");
+
+    const features = featuresRef.current.children;
+    
+    gsap.set(features, {
+      opacity: 0,
+      y: 50
+    });
+
+    const featuresTl = gsap.timeline();
+
+    Array.from(features).forEach((feature, index) => {
+      featuresTl.to(feature, {
+        opacity: 1,
+        y: 0,
+        duration: 0.8,
+        ease: "back.out(1.7)",
+        clearProps: "all"
+      }, index * 0.3);
+    });
+
+    return () => {
+      tl.kill();
+      featuresTl.kill();
+    };
+  }, []);
+
   return (
     <div className="min-h-[calc(100vh-4rem)] flex items-center pt-8 sm:pt-0">
       <div className="w-full max-w-4xl mx-auto rounded-2xl overflow-hidden bg-gradient-to-b from-white to-blue-50 dark:from-gray-900 dark:to-gray-800 p-8 animate-fade-in-up">
         <div className="max-w-2xl mx-auto">
           {/* Hero Section */}
-          <div className="text-center mb-12">
-            <div className="inline-block p-4 mb-8 rounded-2xl bg-gradient-to-tr from-blue-600/20 to-purple-600/20 dark:from-blue-500/20 dark:to-purple-500/20">
+          <div className="text-center mb-12" ref={heroRef}>
+            <div ref={iconRef} className="inline-block p-4 mb-8 rounded-2xl bg-gradient-to-tr from-blue-600/20 to-purple-600/20 dark:from-blue-500/20 dark:to-purple-500/20 opacity-0">
               <div className="w-16 h-16 rounded-xl bg-white dark:bg-gray-800 flex items-center justify-center shadow-inner">
                 <svg
                   className="w-8 h-8 text-blue-600 dark:text-blue-400"
@@ -24,17 +93,18 @@ export default function Home({ language }) {
                 </svg>
               </div>
             </div>
-            <h1 className="text-3xl font-bold mb-4 text-gray-900 dark:text-white">
+            <h1 ref={titleRef} className="text-3xl font-bold mb-4 text-gray-900 dark:text-white opacity-0">
               {language === 'ar' ? 'احفظ أفكارك المهنية' : 'Save Your Professional Insights'}
             </h1>
-            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-lg mx-auto mb-8">
+            <p ref={descRef} className="text-lg text-gray-600 dark:text-gray-300 max-w-lg mx-auto mb-8 opacity-0">
               {language === 'ar' 
                 ? 'احفظ وصنف ونظم المنشورات المهمة من LinkedIn في مكان واحد'
                 : 'Save, categorize, and organize important LinkedIn posts in one place'}
             </p>
             <Link
+              ref={buttonRef}
               to="/notes"
-              className="inline-flex items-center justify-center gap-2 px-8 py-3 text-lg font-medium text-white rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform hover:scale-105 transition-all duration-200 group"
+              className="inline-flex items-center justify-center gap-2 px-8 py-3 text-lg font-medium text-white rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform hover:scale-105 transition-all duration-200 group opacity-0"
             >
               {language === 'ar' ? (
                 <>
@@ -65,9 +135,9 @@ export default function Home({ language }) {
           </div>
 
           {/* Features Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div ref={featuresRef} className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {/* Feature 1 */}
-            <div className="group">
+            <div className="group feature-item">
               <div className="bg-white/50 dark:bg-gray-800/50 rounded-2xl p-6 text-center backdrop-blur-sm transition-all duration-300 hover:bg-white/70 dark:hover:bg-gray-700/70">
                 <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
                   <svg
@@ -96,7 +166,7 @@ export default function Home({ language }) {
             </div>
 
             {/* Feature 2 */}
-            <div className="group">
+            <div className="group feature-item">
               <div className="bg-white/50 dark:bg-gray-800/50 rounded-2xl p-6 text-center backdrop-blur-sm transition-all duration-300 hover:bg-white/70 dark:hover:bg-gray-700/70">
                 <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
                   <svg
@@ -125,7 +195,7 @@ export default function Home({ language }) {
             </div>
 
             {/* Feature 3 */}
-            <div className="group">
+            <div className="group feature-item">
               <div className="bg-white/50 dark:bg-gray-800/50 rounded-2xl p-6 text-center backdrop-blur-sm transition-all duration-300 hover:bg-white/70 dark:hover:bg-gray-700/70">
                 <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
                   <svg

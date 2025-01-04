@@ -1,57 +1,169 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import gsap from 'gsap';
 
-export default function Add({ language, onAddPost }) {
+export default function Add({ language, onAddPost, existingTags }) {
   const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [link, setLink] = useState('');
   const [tags, setTags] = useState([]);
   const [currentTag, setCurrentTag] = useState('');
-  const [status, setStatus] = useState('to-read'); // Default status
+  const [status, setStatus] = useState('to-read');
   const [notes, setNotes] = useState('');
 
-  const handleAddTag = () => {
-    if (currentTag.trim() && !tags.includes(currentTag.trim())) {
-      setTags([...tags, currentTag.trim()]);
+  // Refs for animations
+  const titleRef = useRef(null);
+  const titleInputRef = useRef(null);
+  const descriptionRef = useRef(null);
+  const linkRef = useRef(null);
+  const statusRef = useRef(null);
+  const tagsRef = useRef(null);
+  const notesRef = useRef(null);
+  const submitRef = useRef(null);
+  const tagInputRef = useRef(null);
+
+  // Filter existing tags based on current input
+  const filteredTags = existingTags.filter(tag => 
+    tag.toLowerCase().includes(currentTag.toLowerCase()) && 
+    !tags.includes(tag)
+  );
+
+  const resetForm = () => {
+    setTitle('');
+    setDescription('');
+    setLink('');
+    setTags([]);
+    setCurrentTag('');
+    setStatus('to-read');
+    setNotes('');
+    titleInputRef.current?.focus();
+  };
+
+  const handleTagSelect = (tag) => {
+    if (!tags.includes(tag)) {
+      setTags([...tags, tag]);
+    }
+    setCurrentTag('');
+    tagInputRef.current?.focus();
+  };
+
+  const handleTagInputChange = (e) => {
+    setCurrentTag(e.target.value);
+  };
+
+  const handleTagKeyDown = (e) => {
+    if (e.key === 'Enter' && currentTag.trim()) {
+      e.preventDefault();
+      if (!tags.includes(currentTag.trim())) {
+        setTags([...tags, currentTag.trim()]);
+      }
       setCurrentTag('');
+    } else if (e.key === 'Backspace' && !currentTag && tags.length > 0) {
+      setTags(tags.slice(0, -1));
     }
   };
 
-  const handleRemoveTag = (tagToRemove) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
-  };
+  useEffect(() => {
+    // Set initial states
+    gsap.set(
+      [
+        titleRef.current,
+        titleInputRef.current,
+        descriptionRef.current,
+        linkRef.current,
+        statusRef.current,
+        tagsRef.current,
+        notesRef.current,
+        submitRef.current
+      ],
+      {
+        opacity: 0,
+        y: 30
+      }
+    );
+
+    // Create timeline for better control
+    const tl = gsap.timeline();
+
+    tl.to(titleRef.current, {
+      opacity: 1,
+      y: 0,
+      duration: 0.6,
+      ease: "back.out(1.7)"
+    })
+    .to(titleInputRef.current, {
+      opacity: 1,
+      y: 0,
+      duration: 0.6,
+      ease: "back.out(1.7)"
+    }, "-=0.3")
+    .to(descriptionRef.current, {
+      opacity: 1,
+      y: 0,
+      duration: 0.6,
+      ease: "back.out(1.7)"
+    }, "-=0.3")
+    .to(linkRef.current, {
+      opacity: 1,
+      y: 0,
+      duration: 0.6,
+      ease: "back.out(1.7)"
+    }, "-=0.3")
+    .to(statusRef.current, {
+      opacity: 1,
+      y: 0,
+      duration: 0.6,
+      ease: "back.out(1.7)"
+    }, "-=0.3")
+    .to(tagsRef.current, {
+      opacity: 1,
+      y: 0,
+      duration: 0.6,
+      ease: "back.out(1.7)"
+    }, "-=0.3")
+    .to(notesRef.current, {
+      opacity: 1,
+      y: 0,
+      duration: 0.6,
+      ease: "back.out(1.7)"
+    }, "-=0.3")
+    .to(submitRef.current, {
+      opacity: 1,
+      y: 0,
+      duration: 0.6,
+      ease: "back.out(1.7)"
+    }, "-=0.3");
+
+    return () => {
+      tl.kill();
+    };
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    // Check required fields
-    if (!title.trim() || !link.trim() || !status) {
-      return;
-    }
-
     onAddPost({
       title: title.trim(),
       description: description.trim(),
       link: link.trim(),
       tags,
       status,
-      notes: notes.trim(),
+      notes: notes.trim()
     });
-    navigate('/');
+    resetForm();
   };
 
   return (
     <div className="pt-16">
       <div className="max-w-4xl mx-auto rounded-2xl overflow-hidden bg-gradient-to-b from-white to-blue-50 dark:from-gray-900 dark:to-gray-800 animate-fade-in-up">
         <div className="max-w-2xl mx-auto px-6 py-8">
-          <h1 className="text-2xl font-bold mb-6 text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400">
+          <h1 ref={titleRef} className="text-2xl font-bold mb-6 text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 opacity-0">
             {language === 'ar' ? 'إضافة منشور جديد' : 'Add New Post'}
           </h1>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Title Input */}
-            <div>
+            <div ref={titleInputRef} className="opacity-0">
               <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 {language === 'ar' ? 'عنوان المنشور' : 'Post Title'} 
                 <span className="text-red-500 ml-1">*</span>
@@ -67,7 +179,7 @@ export default function Add({ language, onAddPost }) {
             </div>
 
             {/* Description Input */}
-            <div>
+            <div ref={descriptionRef} className="opacity-0">
               <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 {language === 'ar' ? 'وصف المنشور' : 'Post Description'}
               </label>
@@ -81,7 +193,7 @@ export default function Add({ language, onAddPost }) {
             </div>
 
             {/* Link Input */}
-            <div>
+            <div ref={linkRef} className="opacity-0">
               <label htmlFor="link" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 {language === 'ar' ? 'رابط المنشور' : 'Post Link'}
                 <span className="text-red-500 ml-1">*</span>
@@ -97,7 +209,7 @@ export default function Add({ language, onAddPost }) {
             </div>
 
             {/* Status Buttons */}
-            <div>
+            <div ref={statusRef} className="opacity-0">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 {language === 'ar' ? 'الحالة' : 'Status'}
                 <span className="text-red-500 ml-1">*</span>
@@ -140,23 +252,88 @@ export default function Add({ language, onAddPost }) {
             </div>
 
             {/* Tags Input */}
-            <div>
+            <div ref={tagsRef} className="opacity-0">
               <label htmlFor="tags" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 {language === 'ar' ? 'التصنيفات' : 'Tags'}
               </label>
+
+              {/* Previous Tags Suggestions */}
+              {existingTags.length > 0 && (
+                <div className="mb-3">
+                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                    {language === 'ar' ? 'التصنيفات السابقة:' : 'Previous tags:'}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {existingTags.map((tag, index) => (
+                      !tags.includes(tag) && (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={() => {
+                            setTags([...tags, tag]);
+                          }}
+                          className="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                        >
+                          {tag}
+                        </button>
+                      )
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="flex gap-2 mb-2">
-                <input
-                  type="text"
-                  id="tags"
-                  value={currentTag}
-                  onChange={(e) => setCurrentTag(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
-                  className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={language === 'ar' ? 'اكتب تصنيفاً واضغط Enter' : 'Type a tag and press Enter'}
-                />
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    id="tags"
+                    value={currentTag}
+                    onChange={(e) => setCurrentTag(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (currentTag.trim() && !tags.includes(currentTag.trim())) {
+                          setTags([...tags, currentTag.trim()]);
+                          setCurrentTag('');
+                        }
+                      }
+                    }}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder={language === 'ar' ? 'اكتب تصنيفاً واضغط Enter' : 'Type a tag and press Enter'}
+                  />
+                  
+                  {/* Tag Suggestions */}
+                  {currentTag && existingTags.length > 0 && (
+                    <div className="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 shadow-lg rounded-md border border-gray-300 dark:border-gray-700">
+                      {existingTags
+                        .filter(tag => 
+                          tag.toLowerCase().includes(currentTag.toLowerCase()) && 
+                          !tags.includes(tag)
+                        )
+                        .map((tag, index) => (
+                          <button
+                            key={index}
+                            type="button"
+                            onClick={() => {
+                              setTags([...tags, tag]);
+                              setCurrentTag('');
+                            }}
+                            className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          >
+                            {tag}
+                          </button>
+                        ))}
+                    </div>
+                  )}
+                </div>
                 <button
                   type="button"
-                  onClick={handleAddTag}
+                  onClick={() => {
+                    if (currentTag.trim() && !tags.includes(currentTag.trim())) {
+                      setTags([...tags, currentTag.trim()]);
+                      setCurrentTag('');
+                    }
+                  }}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
                   {language === 'ar' ? 'إضافة' : 'Add'}
@@ -173,7 +350,7 @@ export default function Add({ language, onAddPost }) {
                     {tag}
                     <button
                       type="button"
-                      onClick={() => handleRemoveTag(tag)}
+                      onClick={() => setTags(tags.filter(t => t !== tag))}
                       className="ml-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 focus:outline-none"
                     >
                       ×
@@ -184,7 +361,7 @@ export default function Add({ language, onAddPost }) {
             </div>
 
             {/* Notes Input */}
-            <div>
+            <div ref={notesRef} className="opacity-0">
               <label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 {language === 'ar' ? 'ملاحظات' : 'Notes'}
               </label>
@@ -199,7 +376,7 @@ export default function Add({ language, onAddPost }) {
             </div>
 
             {/* Submit Button */}
-            <div className="text-center">
+            <div ref={submitRef} className="text-center opacity-0">
               <button
                 type="submit"
                 className="inline-flex items-center px-6 py-3 text-base font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-500 dark:to-purple-500 rounded-xl hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"

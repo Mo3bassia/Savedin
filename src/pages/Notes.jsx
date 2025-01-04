@@ -1,9 +1,13 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { format, addDays, subDays } from 'date-fns';
 import { arSA, enUS } from 'date-fns/locale';
 import { FaFont } from 'react-icons/fa';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import noResultsIllustration from '../assets/illustrations/no-results.svg';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 export default function Notes({ language, posts, onDeletePost, onEditPost }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -17,6 +21,12 @@ export default function Notes({ language, posts, onDeletePost, onEditPost }) {
     medium: '16px',
     large: '18px'
   };
+
+  // Refs for GSAP animations
+  const headerRef = useRef(null);
+  const filtersRef = useRef(null);
+  const postsRef = useRef(null);
+  const postsContainerRef = useRef(null);
 
   // Function to clear all filters
   const clearAllFilters = () => {
@@ -56,6 +66,70 @@ export default function Notes({ language, posts, onDeletePost, onEditPost }) {
     });
   }, [posts, searchQuery, selectedDate, selectedStatus, selectedTag]);
 
+  // Initial animations
+  useEffect(() => {
+    // Set initial states
+    gsap.set([headerRef.current, filtersRef.current], {
+      opacity: 0,
+      y: 30
+    });
+
+    // Create timeline for better control
+    const tl = gsap.timeline();
+
+    tl.to(headerRef.current, {
+      opacity: 1,
+      y: 0,
+      duration: 0.6,
+      ease: "back.out(1.7)",
+      clearProps: "all"
+    })
+    .to(filtersRef.current, {
+      opacity: 1,
+      y: 0,
+      duration: 0.6,
+      ease: "back.out(1.7)",
+      clearProps: "all"
+    }, "-=0.3");
+
+    return () => {
+      tl.kill();
+    };
+  }, []); // Initial animation only runs once
+
+  // Animation for filtered posts
+  const isInitialMount = useRef(true);
+  
+  useEffect(() => {
+    // Skip the animation on initial mount
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    const posts = postsRef.current?.querySelectorAll('.post-item');
+    if (posts?.length) {
+      const tl = gsap.timeline();
+
+      // Set initial state for all posts
+      gsap.set(posts, {
+        opacity: 0,
+        y: 30
+      });
+
+      // Animate each post with a delay
+      posts.forEach((post, index) => {
+        tl.to(post, {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          ease: "back.out(1.7)",
+          clearProps: "all"
+        }, index * 0.3);
+      });
+    }
+  }, [filteredPosts]);
+
   const formatDate = (date) => {
     return format(new Date(date), language === 'ar' ? 'dd MMMM yyyy hh:mm a' : 'dd MMMM yyyy hh:mm a', {
       locale: language === 'ar' ? arSA : enUS
@@ -67,14 +141,14 @@ export default function Notes({ language, posts, onDeletePost, onEditPost }) {
       <div className="max-w-4xl mx-auto rounded-2xl overflow-hidden bg-gradient-to-b from-white to-blue-50 dark:from-gray-900 dark:to-gray-800 animate-fade-in-up">
         <div className="max-w-3xl mx-auto px-6 py-8">
           {/* Header */}
-          <div className="text-center mb-8">
+          <div ref={headerRef} className="text-center mb-8">
             <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400">
               {language === 'ar' ? 'مذكراتي' : 'My Notes'}
             </h1>
           </div>
 
           {/* Search and Filters */}
-          <div className="space-y-4 mb-8">
+          <div ref={filtersRef} className="space-y-4 mb-8">
             {/* Font Size and Clear Filters */}
             <div className="flex items-center justify-between gap-2 mb-4">
               <div className="flex items-center gap-2">
@@ -164,128 +238,115 @@ export default function Notes({ language, posts, onDeletePost, onEditPost }) {
           </div>
 
           {/* Posts List */}
-          <div className="space-y-4">
-            {filteredPosts.length === 0 ? (
-              <div className="text-center py-8">
-                <img src={noResultsIllustration} alt="No results" className="w-64 h-64 mx-auto mb-6 animate-float-slow" />
-                <p className="text-lg text-gray-500 dark:text-gray-400 mb-4">
-                  {searchQuery || selectedDate || selectedStatus || selectedTag ? 
-                    (language === 'ar' ? 'لا توجد نتائج مطابقة للفلاتر المحددة' : 'No notes match your selected filters') :
-                    (language === 'ar' ? 'لا توجد مذكرات' : 'No notes found')
-                  }
-                </p>
-                {isFiltersActive && (
-                  <button
-                    onClick={clearAllFilters}
-                    className="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-                  >
-                    {language === 'ar' ? 'مسح الفلاتر' : 'Clear All Filters'}
-                  </button>
-                )}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-4">
-                {filteredPosts.map(post => (
-                  <div
-                    key={post.id}
-                    className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg"
-                  >
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white" style={{ fontSize: `calc(${fontSizes[fontSize]} * 1.2)` }}>
-                          {post.title}
-                        </h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1" style={{ fontSize: `calc(${fontSizes[fontSize]} * 0.9)` }}>
-                          {formatDate(post.createdAt)}
-                        </p>
+          <div className="space-y-6">
+            <div ref={postsRef} className="grid gap-6">
+              {filteredPosts.length === 0 ? (
+                <div className="text-center py-8">
+                  <img 
+                    src={noResultsIllustration} 
+                    alt="No results" 
+                    className="w-64 h-64 mx-auto mb-4 animate-float"
+                  />
+                  <p className="text-gray-500 dark:text-gray-400">
+                    {language === 'ar' ? 'لا توجد نتائج' : 'No results found'}
+                  </p>
+                </div>
+              ) : (
+                filteredPosts.map(post => (
+                  <div key={post.id} className="post-item">
+                    <article className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow p-6">
+                      <div className="flex justify-between items-start gap-4">
+                        <div>
+                          <h3 className="font-semibold text-gray-900 dark:text-white mb-2" style={{ fontSize: fontSizes[fontSize] }}>
+                            {post.title}
+                          </h3>
+                          {post.description && (
+                            <p className="text-gray-600 dark:text-gray-300 mb-4" style={{ fontSize: fontSizes[fontSize] }}>
+                              {post.description}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => onEditPost(post)}
+                            className="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                              />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => onDeletePost(post.id)}
+                            className="text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
+                            </svg>
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => onEditPost(post)}
-                          className="p-2 text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => onDeletePost(post.id)}
-                          className="p-2 text-gray-600 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {post.tags.map((tag, tagIndex) => (
+                          <span
+                            key={tagIndex}
+                            className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200"
+                          >
+                            {tag}
+                          </span>
+                        ))}
                       </div>
-                    </div>
-
-                    <p className="text-gray-600 dark:text-gray-300 mb-4" style={{ fontSize: fontSizes[fontSize] }}>
-                      {post.description}
-                    </p>
-
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {post.tags.map(tag => (
+                      <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+                        <span>{formatDate(post.createdAt)}</span>
                         <span
-                          key={tag}
-                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200"
-                          style={{ fontSize: `calc(${fontSizes[fontSize]} * 0.85)` }}
+                          className={`px-3 py-1 rounded-full ${
+                            post.status === 'completed'
+                              ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
+                              : post.status === 'reading'
+                              ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200'
+                              : 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
+                          }`}
                         >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-
-                    <div className="flex items-center justify-between mb-4">
-                      <span
-                        className={`px-2 py-1 rounded-lg text-sm ${
-                          post.status === 'completed'
-                            ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200'
+                          {post.status === 'completed'
+                            ? language === 'ar'
+                              ? 'تمت القراءة'
+                              : 'Completed'
                             : post.status === 'reading'
-                            ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200'
-                            : 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200'
-                        }`}
-                        style={{ fontSize: `calc(${fontSizes[fontSize]} * 0.9)` }}
-                      >
-                        {post.status === 'completed'
-                          ? language === 'ar' ? 'تمت القراءة' : 'Completed'
-                          : post.status === 'reading'
-                          ? language === 'ar' ? 'قيد القراءة' : 'Reading'
-                          : language === 'ar' ? 'للقراءة لاحقاً' : 'To Read'}
-                      </span>
-
+                            ? language === 'ar'
+                              ? 'قيد القراءة'
+                              : 'Reading'
+                            : language === 'ar'
+                            ? 'للقراءة لاحقاً'
+                            : 'To Read'}
+                        </span>
+                      </div>
                       {post.link && (
                         <a
                           href={post.link}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200"
-                          style={{ fontSize: `calc(${fontSizes[fontSize]} * 0.9)` }}
+                          className="mt-4 inline-flex items-center text-blue-600 dark:text-blue-400 hover:underline"
                         >
                           {language === 'ar' ? 'فتح الرابط' : 'Open Link'}
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v11a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                           </svg>
                         </a>
                       )}
-                    </div>
-
-                    {post.notes && (
-                      <>
-                        <div className="h-px bg-gray-200 dark:bg-gray-700 my-4"></div>
-                        <div className="mt-2">
-                          <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2" style={{ fontSize: `calc(${fontSizes[fontSize]} * 0.9)` }}>
-                            {language === 'ar' ? 'ملاحظات:' : 'Notes:'}
-                          </h4>
-                          <p className="text-gray-600 dark:text-gray-300" style={{ fontSize: `calc(${fontSizes[fontSize]} * 0.95)` }}>
-                            {post.notes}
-                          </p>
-                        </div>
-                      </>
-                    )}
+                    </article>
                   </div>
-                ))}
-              </div>
-            )}
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>
