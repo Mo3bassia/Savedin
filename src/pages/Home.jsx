@@ -3,14 +3,14 @@ import { Link } from 'react-router-dom';
 export default function Home({ language }) {
   return (
     <div className="min-h-[calc(100vh-4rem)] flex items-center pt-8 sm:pt-0">
-      <div className="w-full max-w-4xl mx-auto rounded-2xl overflow-hidden bg-gradient-to-b from-gray-900 to-gray-800 text-white p-8 animate-fade-in-up">
+      <div className="w-full max-w-4xl mx-auto rounded-2xl overflow-hidden bg-gradient-to-b from-white to-blue-50 dark:from-gray-900 dark:to-gray-800 p-8 animate-fade-in-up">
         <div className="max-w-2xl mx-auto">
           {/* Hero Section */}
           <div className="text-center mb-12">
-            <div className="inline-block p-4 mb-8 rounded-2xl bg-gradient-to-tr from-blue-600 to-purple-600">
-              <div className="w-16 h-16 rounded-xl bg-gray-800 flex items-center justify-center shadow-inner">
+            <div className="inline-block p-4 mb-8 rounded-2xl bg-gradient-to-tr from-blue-600/20 to-purple-600/20 dark:from-blue-500/20 dark:to-purple-500/20">
+              <div className="w-16 h-16 rounded-xl bg-white dark:bg-gray-800 flex items-center justify-center shadow-inner">
                 <svg
-                  className="w-8 h-8 text-blue-400"
+                  className="w-8 h-8 text-blue-600 dark:text-blue-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -24,29 +24,39 @@ export default function Home({ language }) {
                 </svg>
               </div>
             </div>
-            <h1 className="text-3xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
+            <h1 className="text-3xl font-bold mb-4 text-gray-900 dark:text-white">
               {language === 'ar' ? 'احفظ أفكارك المهنية' : 'Save Your Professional Insights'}
             </h1>
-            <p className="text-lg text-gray-300 max-w-lg mx-auto mb-8">
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-lg mx-auto mb-8">
               {language === 'ar' 
                 ? 'احفظ وصنف ونظم المنشورات المهمة من LinkedIn في مكان واحد'
                 : 'Save, categorize, and organize important LinkedIn posts in one place'}
             </p>
             <Link
-              to="/saved"
-              className="inline-flex items-center justify-center gap-2 px-8 py-3 text-lg font-medium text-white rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform hover:scale-105 transition-all duration-200"
+              to="/notes"
+              className="inline-flex items-center justify-center gap-2 px-8 py-3 text-lg font-medium text-white rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform hover:scale-105 transition-all duration-200 group"
             >
               {language === 'ar' ? (
                 <>
-                  ابدأ الآن
-                  <svg className="w-5 h-5 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <span>ابدأ الآن</span>
+                  <svg 
+                    className="w-5 h-5 animate-bounce-x" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
                 </>
               ) : (
                 <>
                   Get Started
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg 
+                    className="w-5 h-5 animate-bounce-x" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
                 </>
@@ -58,10 +68,10 @@ export default function Home({ language }) {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {/* Feature 1 */}
             <div className="group">
-              <div className="bg-gray-800/50 rounded-2xl p-6 text-center backdrop-blur-sm">
-                <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-green-900/30 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
+              <div className="bg-white/50 dark:bg-gray-800/50 rounded-2xl p-6 text-center backdrop-blur-sm transition-all duration-300 hover:bg-white/70 dark:hover:bg-gray-700/70">
+                <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
                   <svg
-                    className="w-6 h-6 text-green-400"
+                    className="w-6 h-6 text-green-600 dark:text-green-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -74,10 +84,10 @@ export default function Home({ language }) {
                     />
                   </svg>
                 </div>
-                <h3 className="text-base font-semibold mb-2 text-white">
+                <h3 className="text-base font-semibold mb-2 text-gray-900 dark:text-white">
                   {language === 'ar' ? 'سهل الاستخدام' : 'Easy to Use'}
                 </h3>
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   {language === 'ar' 
                     ? 'واجهة بسيطة تركز على ما يهم'
                     : 'Simple interface focused on what matters'}
@@ -87,10 +97,10 @@ export default function Home({ language }) {
 
             {/* Feature 2 */}
             <div className="group">
-              <div className="bg-gray-800/50 rounded-2xl p-6 text-center backdrop-blur-sm">
-                <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-purple-900/30 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
+              <div className="bg-white/50 dark:bg-gray-800/50 rounded-2xl p-6 text-center backdrop-blur-sm transition-all duration-300 hover:bg-white/70 dark:hover:bg-gray-700/70">
+                <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
                   <svg
-                    className="w-6 h-6 text-purple-400"
+                    className="w-6 h-6 text-purple-600 dark:text-purple-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -103,10 +113,10 @@ export default function Home({ language }) {
                     />
                   </svg>
                 </div>
-                <h3 className="text-base font-semibold mb-2 text-white">
+                <h3 className="text-base font-semibold mb-2 text-gray-900 dark:text-white">
                   {language === 'ar' ? 'خاص وآمن' : 'Private & Secure'}
                 </h3>
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   {language === 'ar'
                     ? 'احتفظ بملاحظاتك آمنة ومحمية'
                     : 'Keep your notes safe and protected'}
@@ -116,10 +126,10 @@ export default function Home({ language }) {
 
             {/* Feature 3 */}
             <div className="group">
-              <div className="bg-gray-800/50 rounded-2xl p-6 text-center backdrop-blur-sm">
-                <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-blue-900/30 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
+              <div className="bg-white/50 dark:bg-gray-800/50 rounded-2xl p-6 text-center backdrop-blur-sm transition-all duration-300 hover:bg-white/70 dark:hover:bg-gray-700/70">
+                <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
                   <svg
-                    className="w-6 h-6 text-blue-400"
+                    className="w-6 h-6 text-blue-600 dark:text-blue-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -132,10 +142,10 @@ export default function Home({ language }) {
                     />
                   </svg>
                 </div>
-                <h3 className="text-base font-semibold mb-2 text-white">
+                <h3 className="text-base font-semibold mb-2 text-gray-900 dark:text-white">
                   {language === 'ar' ? 'متاح دائماً' : 'Always Available'}
                 </h3>
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   {language === 'ar'
                     ? 'الوصول في أي وقت وأي مكان'
                     : 'Access anytime, anywhere'}
