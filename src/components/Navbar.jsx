@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FaBookmark, FaPlus, FaGlobe, FaBars, FaTimes, FaLinkedin, FaMoon, FaSun } from 'react-icons/fa';
+import { FaBookmark, FaPlus, FaGlobe, FaBars, FaTimes, FaLinkedin, FaMoon, FaSun, FaCog } from 'react-icons/fa';
 import {useLocalStorage} from '../hooks/useLocalStorage';
+import { NavLink } from 'react-router-dom';
 
 export default function Navbar({language, toggleLanguage, darkMode, toggleDarkMode}) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -43,29 +44,47 @@ export default function Navbar({language, toggleLanguage, darkMode, toggleDarkMo
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
-            <Link
+            <NavLink
               to="/saved"
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
-                isActivePath('/saved')
-                  ? 'text-blue-600 bg-blue-50 font-medium dark:bg-blue-900 dark:text-blue-300'
-                  : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700'
-              }`}
+              className={({ isActive }) =>
+                `flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+                  isActive
+                    ? 'text-blue-600 bg-blue-50 font-medium dark:bg-blue-900 dark:text-blue-300'
+                    : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700'
+                }`
+              }
             >
               <FaBookmark className={isActivePath('/saved') ? 'text-blue-600 dark:text-blue-300' : ''} />
               <span>{language === 'ar' ? 'المحفوظات' : 'Saved Posts'}</span>
-            </Link>
+            </NavLink>
             
-            <Link
+            <NavLink
               to="/new"
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
-                isActivePath('/new')
-                  ? 'text-blue-600 bg-blue-50 font-medium dark:bg-blue-900 dark:text-blue-300'
-                  : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700'
-              }`}
+              className={({ isActive }) =>
+                `flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+                  isActive
+                    ? 'text-blue-600 bg-blue-50 font-medium dark:bg-blue-900 dark:text-blue-300'
+                    : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700'
+                }`
+              }
             >
               <FaPlus className={isActivePath('/new') ? 'text-blue-600 dark:text-blue-300' : ''} />
               <span>{language === 'ar' ? 'إضافة منشور' : 'Add Post'}</span>
-            </Link>
+            </NavLink>
+
+            <NavLink
+              to="/settings"
+              className={({ isActive }) =>
+                `flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+                  isActive
+                    ? 'text-blue-600 bg-blue-50 font-medium dark:bg-blue-900 dark:text-blue-300'
+                    : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700'
+                }`
+              }
+            >
+              <FaCog className={isActivePath('/settings') ? 'text-blue-600 dark:text-blue-300' : ''} />
+              <span>{language === 'ar' ? 'الإعدادات' : 'Settings'}</span>
+            </NavLink>
 
             {/* Dark Mode Toggle */}
             <button
@@ -94,31 +113,50 @@ export default function Navbar({language, toggleLanguage, darkMode, toggleDarkMo
           } md:hidden overflow-hidden transition-all duration-300 ease-in-out`}
         >
           <div className="py-3 space-y-2">
-            <Link
+            <NavLink
               to="/saved"
-              className={`flex items-center gap-2 px-4 py-3 rounded-lg transition-all duration-200 ${
-                isActivePath('/saved')
-                  ? 'text-blue-600 bg-blue-50 font-medium dark:bg-blue-900 dark:text-blue-300'
-                  : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700'
-              }`}
+              className={({ isActive }) =>
+                `flex items-center gap-2 px-4 py-3 rounded-lg transition-all duration-200 ${
+                  isActive
+                    ? 'text-blue-600 bg-blue-50 font-medium dark:bg-blue-900 dark:text-blue-300'
+                    : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700'
+                }`
+              }
               onClick={() => setIsMenuOpen(false)}
             >
               <FaBookmark className={isActivePath('/saved') ? 'text-blue-600 dark:text-blue-300' : ''} />
               <span>{language === 'ar' ? 'المحفوظات' : 'Saved Posts'}</span>
-            </Link>
+            </NavLink>
             
-            <Link
+            <NavLink
               to="/new"
-              className={`flex items-center gap-2 px-4 py-3 rounded-lg transition-all duration-200 ${
-                isActivePath('/new')
-                  ? 'text-blue-600 bg-blue-50 font-medium dark:bg-blue-900 dark:text-blue-300'
-                  : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700'
-              }`}
+              className={({ isActive }) =>
+                `flex items-center gap-2 px-4 py-3 rounded-lg transition-all duration-200 ${
+                  isActive
+                    ? 'text-blue-600 bg-blue-50 font-medium dark:bg-blue-900 dark:text-blue-300'
+                    : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700'
+                }`
+              }
               onClick={() => setIsMenuOpen(false)}
             >
               <FaPlus className={isActivePath('/new') ? 'text-blue-600 dark:text-blue-300' : ''} />
               <span>{language === 'ar' ? 'إضافة منشور' : 'Add Post'}</span>
-            </Link>
+            </NavLink>
+
+            <NavLink
+              to="/settings"
+              className={({ isActive }) =>
+                `flex items-center gap-2 px-4 py-3 rounded-lg transition-all duration-200 ${
+                  isActive
+                    ? 'text-blue-600 bg-blue-50 font-medium dark:bg-blue-900 dark:text-blue-300'
+                    : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700'
+                }`
+              }
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <FaCog className={isActivePath('/settings') ? 'text-blue-600 dark:text-blue-300' : ''} />
+              <span>{language === 'ar' ? 'الإعدادات' : 'Settings'}</span>
+            </NavLink>
 
             {/* Dark Mode Toggle - Mobile */}
             <button

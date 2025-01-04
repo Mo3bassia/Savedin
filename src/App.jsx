@@ -8,6 +8,7 @@ import Add from "./pages/Add";
 import Notes from "./pages/Notes";
 import Edit from "./pages/Edit";
 import NotFound from './pages/NotFound';
+import Settings from './pages/Settings';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -148,9 +149,16 @@ function AppContent() {
             <Route path="/saved" element={
               <Notes 
                 language={language} 
-                posts={posts} 
+                posts={posts}
                 onDeletePost={deletePost}
-                onEditPost={(post) => navigate(`/edit/${post.id}`)}
+                onEditPost={editPost}
+              />
+            } />
+            <Route path="/settings" element={
+              <Settings
+                language={language}
+                posts={posts}
+                setPosts={setPosts}
               />
             } />
             <Route path="/edit/:id" element={
