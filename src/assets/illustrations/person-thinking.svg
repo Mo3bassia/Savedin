@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="300px" height="200px" viewBox="0 0 300 200" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g transform="translate(50, 20)">
+            <!-- Thought Bubble -->
+            <circle fill="#818CF8" cx="180" cy="40" r="15"/>
+            <circle fill="#818CF8" cx="160" cy="30" r="8"/>
+            <circle fill="#818CF8" cx="145" cy="25" r="5"/>
+            
+            <!-- Person -->
+            <circle fill="#6366F1" cx="100" cy="60" r="25"/> <!-- Head -->
+            <path d="M100,85 L100,140 M70,110 L130,110 M80,160 L120,160" stroke="#6366F1" stroke-width="4"/> <!-- Body & Legs -->
+            <path d="M70,100 L130,100" stroke="#6366F1" stroke-width="4"/> <!-- Arms -->
+            
+            <!-- Question Mark -->
+            <text x="170" y="45" font-family="Arial" font-size="20" fill="#FFFFFF">?</text>
+        </g>
+    </g>
+</svg>

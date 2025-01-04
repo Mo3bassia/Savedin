@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="300px" height="200px" viewBox="0 0 300 200" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g transform="translate(50, 20)">
+            <!-- Laptop -->
+            <rect fill="#6366F1" x="40" y="80" width="160" height="100" rx="8"/>
+            <rect fill="#818CF8" x="60" y="100" width="120" height="60"/>
+            
+            <!-- Person -->
+            <circle fill="#6366F1" cx="120" cy="40" r="20"/> <!-- Head -->
+            <path d="M120,60 L120,80 M100,100 L140,100" stroke="#6366F1" stroke-width="4"/> <!-- Body -->
+            <path d="M90,70 L150,70" stroke="#6366F1" stroke-width="4"/> <!-- Arms -->
+        </g>
+    </g>
+</svg>

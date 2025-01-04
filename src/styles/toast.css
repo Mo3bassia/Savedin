@@ -1,0 +1,33 @@
+/* Custom styles for toast notifications */
+.Toastify__toast {
+  border-radius: 10px;
+  padding: 16px;
+  font-family: inherit;
+}
+
+.Toastify__toast--success {
+  background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+}
+
+.Toastify__toast--error {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.Toastify__toast-body {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+/* Dark mode styles */
+.dark .Toastify__toast {
+  background: #1f2937;
+  color: #f3f4f6;
+}
+
+.dark .Toastify__toast--success {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+.dark .Toastify__toast--error {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+}
