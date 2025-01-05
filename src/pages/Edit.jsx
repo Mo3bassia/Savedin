@@ -7,53 +7,40 @@ const statusOptions = {
   'completed': { ar: 'تمت القراءة', en: 'Completed' }
 };
 
-export default function Edit({ language, posts, onEditPost }) {
+export default function Edit({ language, posts, onEditPost, existingTags, setPageTitle }) {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    link: '',
-    tags: [],
-    status: 'to-read',
-    notes: ''
-  });
-  const [selectedTags, setSelectedTags] = useState([]);
-  const [customTag, setCustomTag] = useState([]);
-  const [existingTags, setExistingTags] = useState([]);
+  const post = posts.find(p => p.id === parseInt(id));
+  const [title, setTitle] = useState(post?.title || '');
+  const [description, setDescription] = useState(post?.description || '');
+  const [link, setLink] = useState(post?.link || '');
+  const [tags, setTags] = useState(post?.tags || []);
+  const [status, setStatus] = useState(post?.status || 'to-read');
+  const [notes, setNotes] = useState(post?.notes || '');
 
   useEffect(() => {
-    // Get all unique tags from existing posts
-    const allTags = new Set();
-    posts.forEach(post => {
-      post.tags.forEach(tag => allTags.add(tag));
-    });
-    setExistingTags(Array.from(allTags));
-
-    // Find and set the current post
-    const post = posts.find(p => p.id === parseInt(id));
-    if (post) {
-      setFormData(post);
-      setSelectedTags(post.tags || []);
-    } else {
-      navigate('/saved');
-    }
-  }, [id, posts, navigate]);
+    setPageTitle(language === 'ar' ? 'تعديل منشور' : 'Edit Post');
+  }, [language, setPageTitle]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     
     const editedPost = {
-      ...formData,
-      tags: selectedTags
+      id: parseInt(id),
+      title,
+      description,
+      link,
+      tags,
+      status,
+      notes
     };
 
     onEditPost(editedPost);
-    navigate('/saved');
+    navigate('/notes');
   };
 
   const handleTagClick = (tag) => {
-    setSelectedTags(prev => 
+    setTags(prev => 
       prev.includes(tag)
         ? prev.filter(t => t !== tag)
         : [...prev, tag]
@@ -62,9 +49,10 @@ export default function Edit({ language, posts, onEditPost }) {
 
   const handleAddCustomTag = (e) => {
     e.preventDefault();
-    if (customTag.trim() && !selectedTags.includes(customTag.trim())) {
-      setSelectedTags(prev => [...prev, customTag.trim()]);
-      setCustomTag('');
+    const customTag = e.target.elements.customTag.value.trim();
+    if (customTag && !tags.includes(customTag)) {
+      setTags(prev => [...prev, customTag]);
+      e.target.elements.customTag.value = '';
     }
   };
 
@@ -88,8 +76,8 @@ export default function Edit({ language, posts, onEditPost }) {
               <input
                 id="title"
                 type="text"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               />
@@ -102,8 +90,8 @@ export default function Edit({ language, posts, onEditPost }) {
               </label>
               <textarea
                 id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 rows="3"
               />
@@ -118,8 +106,8 @@ export default function Edit({ language, posts, onEditPost }) {
               <input
                 id="link"
                 type="url"
-                value={formData.link}
-                onChange={(e) => setFormData({ ...formData, link: e.target.value })}
+                value={link}
+                onChange={(e) => setLink(e.target.value)}
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               />
@@ -137,7 +125,7 @@ export default function Edit({ language, posts, onEditPost }) {
                     type="button"
                     onClick={() => handleTagClick(tag)}
                     className={`px-3 py-1 rounded-full text-sm font-medium transition-colors
-                      ${selectedTags.includes(tag)
+                      ${tags.includes(tag)
                         ? 'bg-blue-500 text-white'
                         : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                       }`}
@@ -149,14 +137,7 @@ export default function Edit({ language, posts, onEditPost }) {
               <div className="flex gap-2">
                 <input
                   type="text"
-                  value={customTag}
-                  onChange={(e) => setCustomTag(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleAddCustomTag(e);
-                    }
-                  }}
+                  name="customTag"
                   placeholder={language === 'ar' ? 'أضف تصنيف جديد' : 'Add custom tag'}
                   className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
@@ -168,13 +149,13 @@ export default function Edit({ language, posts, onEditPost }) {
                   {language === 'ar' ? 'أضف' : 'Add'}
                 </button>
               </div>
-              {selectedTags.length > 0 && (
+              {tags.length > 0 && (
                 <div className="mt-3">
                   <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     {language === 'ar' ? 'التصنيفات المختارة:' : 'Selected tags:'}
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {selectedTags.map(tag => (
+                    {tags.map(tag => (
                       <span
                         key={tag}
                         className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
@@ -204,9 +185,9 @@ export default function Edit({ language, posts, onEditPost }) {
                   <button
                     key={value}
                     type="button"
-                    onClick={() => setFormData({ ...formData, status: value })}
+                    onClick={() => setStatus(value)}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors
-                      ${formData.status === value
+                      ${status === value
                         ? 'bg-blue-500 text-white'
                         : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                       }`}
@@ -224,8 +205,8 @@ export default function Edit({ language, posts, onEditPost }) {
               </label>
               <textarea
                 id="notes"
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 rows="4"
               />
@@ -235,7 +216,7 @@ export default function Edit({ language, posts, onEditPost }) {
             <div className="flex justify-end space-x-4">
               <button
                 type="button"
-                onClick={() => navigate('/saved')}
+                onClick={() => navigate('/notes')}
                 className="px-6 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white"
               >
                 {language === 'ar' ? 'إلغاء' : 'Cancel'}

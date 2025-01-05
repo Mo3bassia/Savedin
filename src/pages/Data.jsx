@@ -63,54 +63,108 @@ const Settings = ({ language, posts, setPosts }) => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     
-    toast.success(language === 'ar' ? 'تم حفظ النسخة الاحتياطية' : 'Backup saved successfully');
+    toast.success(language === 'ar' ? 'تم حفظ النسخة الاحتياطية' : 'Backup saved successfully', {
+      position: language === 'ar' ? "bottom-right" : "bottom-left",
+      rtl: language === 'ar',
+      autoClose: 5000
+    });
   };
 
-  const handleFileSelect = (e) => {
-    const file = e.target.files[0];
+  const handleFileSelect = async (event) => {
+    const file = event.target.files[0];
     if (file) {
       setIsLoading(true);
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const data = JSON.parse(e.target.result);
-          console.log('Parsed data:', data);
-          if (data.posts) {
-            if (data.posts.length === 0) {
-              toast.warning(
-                language === 'ar'
-                  ? 'ملف النسخ الاحتياطي فارغ'
-                  : 'Backup file is empty'
-              );
-              setSelectedFile(null);
-              setPreviewData(null);
-            } else {
-              setPreviewData(data);
-              setSelectedFile(file);
-              console.log('Preview data set:', data);
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        
+        // Check if file is empty or has empty posts array
+        if (!data.posts || data.posts.length === 0) {
+          toast.warn(
+            <div>
+              <div className="mb-3">
+                {language === 'ar' 
+                  ? 'الملف فارغ. هل تريد جعل البيانات فارغة؟' 
+                  : 'The file is empty. Do you want to clear all data?'
+                }
+              </div>
+              <div className="flex justify-center gap-3">
+                <button
+                  onClick={() => {
+                    setPosts([]);
+                    toast.dismiss();
+                    toast.success(
+                      language === 'ar'
+                        ? 'تم تفريغ البيانات بنجاح'
+                        : 'Data cleared successfully',
+                      {
+                        position: language === 'ar' ? "bottom-right" : "bottom-left",
+                        rtl: language === 'ar',
+                        autoClose: 5000
+                      }
+                    );
+                  }}
+                  className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                >
+                  {language === 'ar' ? 'نعم' : 'Yes'}
+                </button>
+                <button
+                  onClick={() => toast.dismiss()}
+                  className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
+                >
+                  {language === 'ar' ? 'لا' : 'No'}
+                </button>
+              </div>
+            </div>,
+            {
+              position: language === 'ar' ? "bottom-right" : "bottom-left",
+              rtl: language === 'ar',
+              autoClose: false,
+              closeOnClick: false,
+              draggable: false,
             }
-          } else {
-            toast.error(
-              language === 'ar'
-                ? 'ملف غير صالح'
-                : 'Invalid backup file'
-            );
-            setSelectedFile(null);
-            setPreviewData(null);
-          }
-        } catch (error) {
-          console.error('Error parsing file:', error);
+          );
+          setIsLoading(false);
+          return;
+        }
+
+        // Validate posts structure
+        if (!Array.isArray(data.posts)) {
           toast.error(
             language === 'ar'
-              ? 'حدث خطأ أثناء قراءة الملف'
-              : 'Error reading file'
+              ? 'تنسيق الملف غير صحيح'
+              : 'Invalid file format',
+            {
+              position: language === 'ar' ? "bottom-right" : "bottom-left",
+              rtl: language === 'ar',
+              autoClose: 5000
+            }
           );
-          setSelectedFile(null);
-          setPreviewData(null);
+          setIsLoading(false);
+          return;
         }
+
+        // Import data
+        setPreviewData(data);
+        setSelectedFile(file);
+        console.log('Preview data set:', data);
         setIsLoading(false);
-      };
-      reader.readAsText(file);
+      } catch (error) {
+        console.error('Error parsing file:', error);
+        toast.error(
+          language === 'ar'
+            ? 'حدث خطأ أثناء قراءة الملف'
+            : 'Error reading file',
+          {
+            position: language === 'ar' ? "bottom-right" : "bottom-left",
+            rtl: language === 'ar',
+            autoClose: 5000
+          }
+        );
+        setIsLoading(false);
+        setSelectedFile(null);
+        setPreviewData(null);
+      }
     }
   };
 
@@ -129,7 +183,12 @@ const Settings = ({ language, posts, setPosts }) => {
       toast.success(
         language === 'ar' 
           ? 'تم استعادة البيانات بنجاح' 
-          : 'Data restored successfully'
+          : 'Data restored successfully',
+        {
+          position: language === 'ar' ? "bottom-right" : "bottom-left",
+          rtl: language === 'ar',
+          autoClose: 5000
+        }
       );
       resetFileInput();
     }

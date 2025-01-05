@@ -1,14 +1,15 @@
-import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-
-import Home from "./pages/Home";
-import Navbar from "./components/Navbar";
-import { useLocalStorage } from "./hooks/useLocalStorage";
-import Add from "./pages/Add";
-import Notes from "./pages/Notes";
+import { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+import Home from './pages/Home';
+import Notes from './pages/Notes';
+import Add from './pages/Add';
 import Edit from "./pages/Edit";
 import NotFound from './pages/NotFound';
-import Settings from './pages/Settings';
+import Data from './pages/Data';
+import Stats from './pages/Stats';
+import { useLocalStorage } from "./hooks/useLocalStorage";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -17,6 +18,11 @@ function AppContent() {
   const [language, setLanguage] = useLocalStorage('ar', 'lang');
   const [darkMode, setDarkMode] = useLocalStorage(false, 'darkMode');
   const [posts, setPosts] = useLocalStorage([], 'posts');
+
+  const setPageTitle = (pageTitle) => {
+    const appName = language === 'ar' ? 'محفوظاتي' : 'SavedIn';
+    document.title = `${appName} | ${pageTitle}`;
+  };
 
   // Get all unique tags from posts
   const getAllTags = () => {
@@ -53,10 +59,19 @@ function AppContent() {
   const deletePost = (postId) => {
     const confirmDelete = () => {
       setPosts(posts.filter(post => post.id !== postId));
-      toast.success(language === 'ar' ? 'تم حذف المنشور بنجاح' : 'Post deleted successfully', {
-        position: language === 'ar' ? "bottom-right" : "bottom-left",
-        rtl: language === 'ar'
-      });
+      // Delay success message to show after confirmation dismissal
+      setTimeout(() => {
+        toast.success(language === 'ar' ? 'تم حذف المنشور بنجاح' : 'Post deleted successfully', {
+          position: language === 'ar' ? "bottom-right" : "bottom-left",
+          rtl: language === 'ar',
+          autoClose: 3000,
+          style: {
+            background: darkMode ? '#121212' : '#dcfce7',
+            color: darkMode ? '#4ade80' : '#16a34a',
+            borderRadius: '0.5rem'
+          }
+        });
+      }, 300); // Small delay to ensure confirmation is dismissed first
     };
 
     toast.warn(
@@ -86,6 +101,11 @@ function AppContent() {
         autoClose: false,
         closeOnClick: false,
         draggable: false,
+        style: {
+          background: darkMode ? '#121212' : '#fff',
+          color: darkMode ? '#fff' : '#000',
+          borderRadius: '0.5rem'
+        }
       }
     );
   };
@@ -144,33 +164,69 @@ function AppContent() {
         />
         <main className="pt-10 px-4 dark:bg-gray-900">
           <Routes>
-            <Route path="/" element={<Home language={language} posts={posts} />} />
-            <Route path="/new" element={<Add language={language} onAddPost={addPost} existingTags={getAllTags()} />} />
-            <Route path="/saved" element={
-              <Notes 
-                language={language} 
-                posts={posts}
-                onDeletePost={deletePost}
-                onEditPost={editPost}
-              />
-            } />
-            <Route path="/settings" element={
-              <Settings
-                language={language}
-                posts={posts}
-                setPosts={setPosts}
-              />
-            } />
-            <Route path="/edit/:id" element={
-              <Edit 
-                language={language} 
-                posts={posts} 
-                onEditPost={editPost}
-              />
-            } />
-            <Route path="*" element={<NotFound language={language} />} />
+            <Route path="/" element={<Home language={language} setPageTitle={setPageTitle} />} />
+            <Route 
+              path="/notes" 
+              element={
+                <Notes 
+                  language={language}
+                  posts={posts}
+                  onDeletePost={deletePost}
+                  onEditPost={editPost}
+                  setPageTitle={setPageTitle}
+                />
+              } 
+            />
+            <Route 
+              path="/add" 
+              element={
+                <Add 
+                  language={language}
+                  onAddPost={addPost}
+                  existingTags={getAllTags()}
+                  toast={toast}
+                  darkMode={darkMode}
+                  setPageTitle={setPageTitle}
+                />
+              } 
+            />
+            <Route 
+              path="/stats" 
+              element={
+                <Stats 
+                  language={language}
+                  posts={posts}
+                  setPageTitle={setPageTitle}
+                  darkMode={darkMode}
+                />
+              } 
+            />
+            <Route 
+              path="/data" 
+              element={
+                <Data 
+                  language={language}
+                  posts={posts}
+                  setPosts={setPosts}
+                />
+              } 
+            />
+            <Route 
+              path="/edit/:id" 
+              element={
+                <Edit
+                  language={language}
+                  posts={posts}
+                  onEditPost={editPost}
+                  existingTags={getAllTags()}
+                  setPageTitle={setPageTitle}
+                />
+              }
+            />
+            <Route path="*" element={<NotFound language={language} setPageTitle={setPageTitle} />} />
           </Routes>
         </main>
+        <Footer language={language} darkMode={darkMode} posts={posts} />
       </div>
     </div>
   );
@@ -178,8 +234,8 @@ function AppContent() {
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <Router>
       <AppContent />
-    </BrowserRouter>
+    </Router>
   );
 }

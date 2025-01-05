@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 
-export default function Add({ language, onAddPost, existingTags }) {
+export default function Add({ language, onAddPost, existingTags, toast, darkMode, setPageTitle }) {
   const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -28,6 +28,10 @@ export default function Add({ language, onAddPost, existingTags }) {
     tag.toLowerCase().includes(currentTag.toLowerCase()) && 
     !tags.includes(tag)
   );
+
+  useEffect(() => {
+    setPageTitle(language === 'ar' ? 'إضافة منشور' : 'Add Post');
+  }, [language, setPageTitle]);
 
   const resetForm = () => {
     setTitle('');
@@ -142,6 +146,24 @@ export default function Add({ language, onAddPost, existingTags }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Check required fields
+    if (!title.trim() || !link.trim()) {
+      toast.error(language === 'ar' 
+        ? 'يرجى ملء جميع الحقول المطلوبة (العنوان والرابط)' 
+        : 'Please fill in all required fields (Title and Link)', {
+        position: language === 'ar' ? "bottom-right" : "bottom-left",
+        rtl: language === 'ar',
+        autoClose: 3000,
+        style: {
+          background: darkMode ? '#121212' : '#fee2e2',
+          color: darkMode ? '#f87171' : '#dc2626',
+          borderRadius: '0.5rem'
+        }
+      });
+      return;
+    }
+
     onAddPost({
       title: title.trim(),
       description: description.trim(),
@@ -174,7 +196,7 @@ export default function Add({ language, onAddPost, existingTags }) {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
+                placeholder={language === 'ar' ? 'مثال: كيفية إنشاء تطبيق React' : 'Example: How to Build a React App'}
               />
             </div>
 
@@ -189,6 +211,7 @@ export default function Add({ language, onAddPost, existingTags }) {
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder={language === 'ar' ? 'اكتب وصفاً مختصراً للمنشور...' : 'Write a brief description of the post...'}
               />
             </div>
 
@@ -204,7 +227,7 @@ export default function Add({ language, onAddPost, existingTags }) {
                 value={link}
                 onChange={(e) => setLink(e.target.value)}
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
+                placeholder={language === 'ar' ? 'https://example.com/post' : 'https://example.com/post'}
               />
             </div>
 
@@ -254,14 +277,14 @@ export default function Add({ language, onAddPost, existingTags }) {
             {/* Tags Input */}
             <div ref={tagsRef} className="opacity-0">
               <label htmlFor="tags" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {language === 'ar' ? 'التصنيفات' : 'Tags'}
+                {language === 'ar' ? 'الوسوم' : 'Tags'}
               </label>
 
               {/* Previous Tags Suggestions */}
               {existingTags.length > 0 && (
                 <div className="mb-3">
                   <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                    {language === 'ar' ? 'التصنيفات السابقة:' : 'Previous tags:'}
+                    {language === 'ar' ? 'الوسوم السابقة:' : 'Previous tags:'}
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {existingTags.map((tag, index) => (
@@ -285,21 +308,14 @@ export default function Add({ language, onAddPost, existingTags }) {
               <div className="flex gap-2 mb-2">
                 <div className="relative flex-1">
                   <input
+                    ref={tagInputRef}
                     type="text"
                     id="tags"
                     value={currentTag}
-                    onChange={(e) => setCurrentTag(e.target.value)}
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        if (currentTag.trim() && !tags.includes(currentTag.trim())) {
-                          setTags([...tags, currentTag.trim()]);
-                          setCurrentTag('');
-                        }
-                      }
-                    }}
+                    onChange={handleTagInputChange}
+                    onKeyDown={handleTagKeyDown}
                     className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={language === 'ar' ? 'اكتب تصنيفاً واضغط Enter' : 'Type a tag and press Enter'}
+                    placeholder={language === 'ar' ? 'اضغط Enter لإضافة وسم...' : 'Press Enter to add a tag...'}
                   />
                   
                   {/* Tag Suggestions */}
@@ -363,7 +379,7 @@ export default function Add({ language, onAddPost, existingTags }) {
             {/* Notes Input */}
             <div ref={notesRef} className="opacity-0">
               <label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {language === 'ar' ? 'ملاحظات' : 'Notes'}
+                {language === 'ar' ? 'الملاحظات' : 'Notes'}
               </label>
               <textarea
                 id="notes"
@@ -371,7 +387,7 @@ export default function Add({ language, onAddPost, existingTags }) {
                 onChange={(e) => setNotes(e.target.value)}
                 rows={4}
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder={language === 'ar' ? 'أضف ملاحظاتك الخاصة هنا' : 'Add your private notes here'}
+                placeholder={language === 'ar' ? 'اكتب ملاحظاتك حول المنشور...' : 'Write your notes about the post...'}
               />
             </div>
 

@@ -1,25 +1,34 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { format, addDays, subDays } from 'date-fns';
 import { arSA, enUS } from 'date-fns/locale';
-import { FaFont } from 'react-icons/fa';
+import { FaFont, FaSearch, FaChevronDown, FaPen } from 'react-icons/fa';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import noResultsIllustration from '../assets/illustrations/no-results.svg';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { Link } from 'react-router-dom';
 
 gsap.registerPlugin(ScrollTrigger);
 
-export default function Notes({ language, posts, onDeletePost, onEditPost }) {
+export default function Notes({ language, posts, onDeletePost, onEditPost, setPageTitle }) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedDate, setSelectedDate] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('');
-  const [selectedTag, setSelectedTag] = useState('');
-  const [fontSize, setFontSize] = useLocalStorage('medium', 'postsFontSize');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [tagFilter, setTagFilter] = useState('all');
+  const [dateFilter, setDateFilter] = useState('');
+  const defaultFontSize = 'md';
+  const [fontSize, setFontSize] = useLocalStorage('postsFontSize', defaultFontSize);
 
   const fontSizes = {
-    small: '14px',
-    medium: '16px',
-    large: '18px'
+    'xs': { title: '16px', content: '12px' },
+    'sm': { title: '18px', content: '14px' },
+    'md': { title: '20px', content: '16px' },
+    'lg': { title: '22px', content: '18px' },
+    'xl': { title: '24px', content: '20px' }
+  };
+
+  const getFontSize = (type) => {
+    const currentSize = fontSize || defaultFontSize;
+    return fontSizes[currentSize]?.[type] || fontSizes[defaultFontSize][type];
   };
 
   // Refs for GSAP animations
@@ -31,13 +40,13 @@ export default function Notes({ language, posts, onDeletePost, onEditPost }) {
   // Function to clear all filters
   const clearAllFilters = () => {
     setSearchQuery('');
-    setSelectedDate('');
-    setSelectedStatus('');
-    setSelectedTag('');
+    setStatusFilter('all');
+    setTagFilter('all');
+    setDateFilter('');
   };
 
   // Check if any filter is active
-  const isFiltersActive = searchQuery || selectedDate || selectedStatus || selectedTag;
+  const isFiltersActive = searchQuery || statusFilter !== 'all' || tagFilter !== 'all' || dateFilter;
 
   // Get unique tags from all posts
   const allTags = useMemo(() => {
@@ -48,23 +57,23 @@ export default function Notes({ language, posts, onDeletePost, onEditPost }) {
 
   // Filter posts based on search criteria
   const filteredPosts = useMemo(() => {
-    return posts.filter(post => {
-      console.log('Post status:', post.status, 'Selected status:', selectedStatus); // Debug line
-      
-      const matchesSearch = searchQuery === '' || 
-        post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        post.description.toLowerCase().includes(searchQuery.toLowerCase());
+    return posts
+      .filter(post => {
+        const matchesSearch = searchQuery === '' || 
+          post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          post.description.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const matchesDate = selectedDate === '' || 
-        new Date(post.createdAt).toLocaleDateString() === new Date(selectedDate).toLocaleDateString();
+        const matchesStatus = statusFilter === 'all' || post.status === statusFilter;
 
-      const matchesStatus = selectedStatus === '' || post.status === selectedStatus;
+        const matchesTag = tagFilter === 'all' || post.tags.includes(tagFilter);
 
-      const matchesTag = selectedTag === '' || post.tags.includes(selectedTag);
+        const matchesDate = dateFilter === '' || 
+          new Date(post.createdAt).toLocaleDateString() === new Date(dateFilter).toLocaleDateString();
 
-      return matchesSearch && matchesDate && matchesStatus && matchesTag;
-    });
-  }, [posts, searchQuery, selectedDate, selectedStatus, selectedTag]);
+        return matchesSearch && matchesStatus && matchesTag && matchesDate;
+      })
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // Sort by date, newest first
+  }, [posts, searchQuery, statusFilter, tagFilter, dateFilter]);
 
   // Initial animations
   useEffect(() => {
@@ -130,10 +139,66 @@ export default function Notes({ language, posts, onDeletePost, onEditPost }) {
     }
   }, [filteredPosts]);
 
+  useEffect(() => {
+    setPageTitle(language === 'ar' ? 'المذكرات' : 'Notes');
+  }, [language, setPageTitle]);
+
   const formatDate = (date) => {
     return format(new Date(date), language === 'ar' ? 'dd MMMM yyyy hh:mm a' : 'dd MMMM yyyy hh:mm a', {
       locale: language === 'ar' ? arSA : enUS
     });
+  };
+
+  // Font size control component
+  const FontSizeControl = () => {
+    const fontSizeOptions = [
+      { value: 'xs', labelAr: 'صغير جداً', labelEn: 'Extra Small', size: '16px' },
+      { value: 'sm', labelAr: 'صغير', labelEn: 'Small', size: '18px' },
+      { value: 'md', labelAr: 'متوسط', labelEn: 'Medium', size: '20px' },
+      { value: 'lg', labelAr: 'كبير', labelEn: 'Large', size: '22px' },
+      { value: 'xl', labelAr: 'كبير جداً', labelEn: 'Extra Large', size: '24px' }
+    ];
+
+    return (
+      <div className="flex flex-col gap-2 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+        <div className="flex items-center gap-2">
+          <FaFont className="text-gray-500 dark:text-gray-400" />
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            {language === 'ar' ? 'حجم الخط' : 'Font Size'}
+          </span>
+        </div>
+        <div 
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2" 
+          dir={language === 'ar' ? 'rtl' : 'ltr'}
+        >
+          {fontSizeOptions.map((option) => (
+            <button
+              key={option.value}
+              onClick={() => setFontSize(option.value)}
+              className={`
+                py-2 px-3 rounded-lg flex flex-col items-center justify-center gap-1
+                transition-all duration-200
+                ${fontSize === option.value
+                  ? 'bg-blue-500 text-white shadow-sm'
+                  : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300'
+                }
+              `}
+              title={language === 'ar' ? option.labelAr : option.labelEn}
+            >
+              <span style={{ fontSize: option.size }}>A</span>
+              <span className="text-xs whitespace-nowrap">
+                {language === 'ar' ? option.labelAr : option.labelEn}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  // Handle tag click to toggle filter
+  const handleTagClick = (clickedTag) => {
+    setTagFilter(prev => prev === clickedTag ? 'all' : clickedTag);
   };
 
   return (
@@ -143,113 +208,174 @@ export default function Notes({ language, posts, onDeletePost, onEditPost }) {
           {/* Header */}
           <div ref={headerRef} className="text-center mb-8">
             <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400">
-              {language === 'ar' ? 'مذكراتي' : 'My Notes'}
+              {language === 'ar' ? 'منشوراتي' : 'My Notes'}
             </h1>
           </div>
 
+          {/* Font Size Control */}
+          <div className="mb-6">
+            <FontSizeControl />
+          </div>
+
           {/* Search and Filters */}
-          <div ref={filtersRef} className="space-y-4 mb-8">
-            {/* Font Size and Clear Filters */}
-            <div className="flex items-center justify-between gap-2 mb-4">
-              <div className="flex items-center gap-2">
-                <FaFont className="text-gray-500" />
-                <div className="flex gap-2 bg-white dark:bg-gray-800 rounded-lg p-1">
-                  {['small', 'medium', 'large'].map(size => (
-                    <button
-                      key={size}
-                      onClick={() => setFontSize(size)}
-                      className={`px-3 py-1.5 rounded-lg transition-all duration-200 text-sm ${
-                        fontSize === size
-                          ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300'
-                          : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
-                      }`}
-                    >
-                      {language === 'ar' 
-                        ? size === 'small' ? 'صغير' : size === 'medium' ? 'متوسط' : 'كبير'
-                        : size === 'small' ? 'S' : size === 'medium' ? 'M' : 'L'
-                      }
-                    </button>
-                  ))}
-                </div>
-              </div>
-              
+          <div className="flex flex-col gap-4 mb-6">
+            {/* Search */}
+            <div className="relative">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={language === 'ar' ? 'ابحث عن مذكرة...' : 'Search notes...'}
+                className="w-full px-4 py-2 pr-10 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                dir={language === 'ar' ? 'rtl' : 'ltr'}
+              />
+              <FaSearch className={`absolute top-1/2 transform -translate-y-1/2 ${language === 'ar' ? 'left-3' : 'right-3'} text-gray-400`} />
+              {/* Clear Filters Button */}
               {isFiltersActive && (
                 <button
                   onClick={clearAllFilters}
-                  className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg text-gray-600 hover:text-blue-600 hover:bg-blue-50 dark:text-gray-300 dark:hover:text-blue-300 dark:hover:bg-gray-800 transition-all duration-200"
+                  className={`absolute top-1/2 transform -translate-y-1/2 ${language === 'ar' ? 'left-12' : 'right-12'} text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors`}
+                  title={language === 'ar' ? 'مسح الفلاتر' : 'Clear filters'}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                   </svg>
-                  {language === 'ar' ? 'مسح الفلاتر' : 'Clear Filters'}
                 </button>
               )}
             </div>
 
-            {/* Search Input */}
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={language === 'ar' ? 'ابحث في المذكرات...' : 'Search notes...'}
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-
-            {/* Filters Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Date Filter */}
-              <div>
-                <input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
+            {/* Other Filters */}
+            <div className="flex flex-wrap gap-4">
               {/* Status Filter */}
-              <div>
+              <div className="flex-1 min-w-[200px] relative">
                 <select
-                  value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent appearance-none cursor-pointer"
+                  dir={language === 'ar' ? 'rtl' : 'ltr'}
                 >
-                  <option value="">{language === 'ar' ? 'جميع الحالات' : 'All Statuses'}</option>
-                  <option value="to-read">{language === 'ar' ? 'للقراءة لاحقاً' : 'To Read'}</option>
+                  <option value="all">{language === 'ar' ? 'جميع الحالات' : 'All Statuses'}</option>
                   <option value="reading">{language === 'ar' ? 'قيد القراءة' : 'Reading'}</option>
-                  <option value="completed">{language === 'ar' ? 'تمت القراءة' : 'Completed'}</option>
+                  <option value="completed">{language === 'ar' ? 'مكتمل' : 'Completed'}</option>
+                  <option value="new">{language === 'ar' ? 'جديد' : 'New'}</option>
                 </select>
+                <div className={`absolute inset-y-0 ${language === 'ar' ? 'left-4' : 'right-4'} flex items-center pointer-events-none`}>
+                  <FaChevronDown className="text-gray-400 dark:text-gray-500" />
+                </div>
               </div>
 
               {/* Tags Filter */}
-              <div>
+              <div className="flex-1 min-w-[200px] relative">
                 <select
-                  value={selectedTag}
-                  onChange={(e) => setSelectedTag(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  value={tagFilter}
+                  onChange={(e) => setTagFilter(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent appearance-none cursor-pointer"
+                  dir={language === 'ar' ? 'rtl' : 'ltr'}
                 >
-                  <option value="">{language === 'ar' ? 'جميع الوسوم' : 'All Tags'}</option>
-                  {allTags.map(tag => (
+                  <option value="all">{language === 'ar' ? 'جميع الوسوم' : 'All Tags'}</option>
+                  {Array.from(new Set(posts.flatMap(post => post.tags))).map(tag => (
                     <option key={tag} value={tag}>{tag}</option>
                   ))}
                 </select>
+                <div className={`absolute inset-y-0 ${language === 'ar' ? 'left-4' : 'right-4'} flex items-center pointer-events-none`}>
+                  <FaChevronDown className="text-gray-400 dark:text-gray-500" />
+                </div>
+              </div>
+
+              {/* Date Filter */}
+              <div className="flex-1 min-w-[200px]">
+                <input
+                  type="date"
+                  value={dateFilter}
+                  onChange={(e) => setDateFilter(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent cursor-pointer"
+                  dir={language === 'ar' ? 'rtl' : 'ltr'}
+                />
               </div>
             </div>
           </div>
 
+          {/* Active Filters Display */}
+          {isFiltersActive && (
+            <div className="mb-4 flex flex-wrap gap-2 items-center text-sm text-gray-600 dark:text-gray-400">
+              <span>{language === 'ar' ? 'الفلاتر النشطة:' : 'Active filters:'}</span>
+              {searchQuery && (
+                <span className="px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-700">
+                  {language === 'ar' ? 'بحث: ' : 'Search: '}{searchQuery}
+                </span>
+              )}
+              {statusFilter !== 'all' && (
+                <span className="px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-700">
+                  {language === 'ar' ? 'الحالة: ' : 'Status: '}{statusFilter}
+                </span>
+              )}
+              {tagFilter !== 'all' && (
+                <span className="px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-700">
+                  {language === 'ar' ? 'التاج: ' : 'Tag: '}{tagFilter}
+                </span>
+              )}
+              {dateFilter && (
+                <span className="px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-700">
+                  {language === 'ar' ? 'التاريخ: ' : 'Date: '}
+                  {new Date(dateFilter).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US')}
+                </span>
+              )}
+            </div>
+          )}
+
           {/* Posts List */}
           <div className="space-y-6">
-            <div ref={postsRef} className="grid gap-6">
+            {/* Results count when filters are active */}
+            {isFiltersActive && filteredPosts.length > 0 && (
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                {language === 'ar' 
+                  ? `تم العثور على ${filteredPosts.length} ${filteredPosts.length === 1 ? 'منشور' : 'منشورات'} من إجمالي ${posts.length}`
+                  : `Found ${filteredPosts.length} ${filteredPosts.length === 1 ? 'post' : 'posts'} out of ${posts.length}`
+                }
+                {tagFilter !== 'all' && (
+                  <span className="mx-1">
+                    {language === 'ar' ? 'في تصنيف' : 'in tag'} "{tagFilter}"
+                  </span>
+                )}
+                {statusFilter !== 'all' && (
+                  <span className="mx-1">
+                    {language === 'ar' ? 'بحالة' : 'with status'} "
+                    {statusFilter === 'reading' 
+                      ? language === 'ar' ? 'قيد القراءة' : 'Reading'
+                      : statusFilter === 'completed'
+                      ? language === 'ar' ? 'مكتمل' : 'Completed'
+                      : language === 'ar' ? 'جديد' : 'New'
+                    }"
+                  </span>
+                )}
+                {searchQuery && (
+                  <span className="mx-1">
+                    {language === 'ar' ? 'تطابق البحث' : 'matching'} "{searchQuery}"
+                  </span>
+                )}
+              </div>
+            )}
+            <div ref={postsContainerRef} className="grid gap-6">
               {filteredPosts.length === 0 ? (
-                <div className="text-center py-8">
+                <div className="text-center py-8" ref={postsRef}>
                   <img 
                     src={noResultsIllustration} 
                     alt="No results" 
-                    className="w-64 h-64 mx-auto mb-4 animate-float"
+                    className="w-64 h-64 mx-auto mb-4 opacity-75 transition-transform duration-1000 ease-in-out hover:scale-105"
                   />
-                  <p className="text-gray-500 dark:text-gray-400">
-                    {language === 'ar' ? 'لا توجد نتائج' : 'No results found'}
+                  <p className="text-gray-500 dark:text-gray-400 transition-opacity duration-500">
+                    {isFiltersActive 
+                      ? (language === 'ar' ? 'لا توجد نتائج تطابق معايير البحث' : 'No results match your search criteria')
+                      : (language === 'ar' ? 'لا توجد منشورات بعد' : 'No posts yet')}
                   </p>
+                  {isFiltersActive && (
+                    <button
+                      onClick={clearAllFilters}
+                      className="mt-4 text-blue-600 dark:text-blue-400 hover:underline transition-colors duration-300"
+                    >
+                      {language === 'ar' ? 'مسح عوامل التصفية' : 'Clear all filters'}
+                    </button>
+                  )}
                 </div>
               ) : (
                 filteredPosts.map(post => (
@@ -257,34 +383,35 @@ export default function Notes({ language, posts, onDeletePost, onEditPost }) {
                     <article className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow p-6">
                       <div className="flex justify-between items-start gap-4">
                         <div>
-                          <h3 className="font-semibold text-gray-900 dark:text-white mb-2" style={{ fontSize: fontSizes[fontSize] }}>
+                          <h3 
+                            className="font-semibold text-gray-900 dark:text-white mb-2" 
+                            style={{ fontSize: getFontSize('title') }}
+                          >
                             {post.title}
                           </h3>
                           {post.description && (
-                            <p className="text-gray-600 dark:text-gray-300 mb-4" style={{ fontSize: fontSizes[fontSize] }}>
+                            <p 
+                              className="text-gray-600 dark:text-gray-300 mb-4"
+                              style={{ fontSize: getFontSize('content') }}
+                            >
                               {post.description}
                             </p>
                           )}
                         </div>
                         <div className="flex gap-2">
-                          <button
-                            onClick={() => onEditPost(post)}
-                            className="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
+                          <Link
+                            to={`/edit/${post.id}`}
+                            className="p-1.5 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:text-gray-400 dark:hover:text-blue-400 dark:hover:bg-blue-900/50 transition-all"
+                            title={language === 'ar' ? 'تعديل' : 'Edit'}
                           >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                              />
-                            </svg>
-                          </button>
+                            <FaPen className="w-4 h-4" />
+                          </Link>
                           <button
                             onClick={() => onDeletePost(post.id)}
-                            className="text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400"
+                            className="p-1.5 rounded-lg text-gray-500 hover:text-red-600 hover:bg-red-50 dark:text-gray-400 dark:hover:text-red-400 dark:hover:bg-red-900/50 transition-all"
+                            title={language === 'ar' ? 'حذف' : 'Delete'}
                           >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
@@ -297,12 +424,20 @@ export default function Notes({ language, posts, onDeletePost, onEditPost }) {
                       </div>
                       <div className="flex flex-wrap gap-2 mb-4">
                         {post.tags.map((tag, tagIndex) => (
-                          <span
+                          <button
                             key={tagIndex}
-                            className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200"
+                            onClick={() => handleTagClick(tag)}
+                            className={`inline-flex items-center px-3 py-1 rounded-full text-sm transition-all
+                              ${tagFilter === tag 
+                                ? 'bg-blue-500 text-white hover:bg-blue-600' 
+                                : 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 hover:bg-blue-200 dark:hover:bg-blue-800'
+                              } cursor-pointer`}
                           >
                             {tag}
-                          </span>
+                            {tagFilter === tag && (
+                              <span className="ml-1.5 text-xs">×</span>
+                            )}
+                          </button>
                         ))}
                       </div>
                       <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
@@ -341,6 +476,19 @@ export default function Notes({ language, posts, onDeletePost, onEditPost }) {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v11a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                           </svg>
                         </a>
+                      )}
+                      {post.notes && (
+                        <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                          <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                            {language === 'ar' ? 'ملاحظات:' : 'Notes:'}
+                          </h4>
+                          <p 
+                            className="text-gray-600 dark:text-gray-300 whitespace-pre-wrap"
+                            style={{ fontSize: getFontSize('content') }}
+                          >
+                            {post.notes}
+                          </p>
+                        </div>
                       )}
                     </article>
                   </div>

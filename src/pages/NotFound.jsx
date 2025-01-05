@@ -1,7 +1,12 @@
 import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
 import notFoundSearch from '../assets/illustrations/404-search.svg';
 
-export default function NotFound({ language }) {
+export default function NotFound({ language, setPageTitle }) {
+  useEffect(() => {
+    setPageTitle(language === 'ar' ? 'صفحة غير موجودة' : 'Page Not Found');
+  }, [language, setPageTitle]);
+
   return (
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center relative overflow-hidden bg-gray-50 dark:bg-gray-900">
       {/* Background Decorations */}
