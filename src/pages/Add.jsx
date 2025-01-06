@@ -196,7 +196,7 @@ export default function Add({ language, onAddPost, existingTags, toast, darkMode
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder={language === 'ar' ? 'مثال: كيفية إنشاء تطبيق React' : 'Example: How to Build a React App'}
+                placeholder={language === 'ar' ? '10 نصائح للمقابلات الشخصية في شركات التكنولوجيا' : '10 Tips for Tech Job Interviews'}
               />
             </div>
 
@@ -211,7 +211,7 @@ export default function Add({ language, onAddPost, existingTags, toast, darkMode
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder={language === 'ar' ? 'اكتب وصفاً مختصراً للمنشور...' : 'Write a brief description of the post...'}
+                placeholder={language === 'ar' ? 'منشور مفيد من محمد أحمد عن تجربته في المقابلات الشخصية مع كبرى شركات التكنولوجيا...' : 'Helpful post by John Smith about his experience with tech interviews at major companies...'}
               />
             </div>
 
@@ -227,7 +227,7 @@ export default function Add({ language, onAddPost, existingTags, toast, darkMode
                 value={link}
                 onChange={(e) => setLink(e.target.value)}
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder={language === 'ar' ? 'https://example.com/post' : 'https://example.com/post'}
+                placeholder={language === 'ar' ? 'https://www.linkedin.com/posts/mohamedahmed_tech-interviews-tips-activity-7142856937264' : 'https://www.linkedin.com/posts/johnsmith_tech-interviews-tips-activity-7142856937264'}
               />
             </div>
 
@@ -276,9 +276,20 @@ export default function Add({ language, onAddPost, existingTags, toast, darkMode
 
             {/* Tags Input */}
             <div ref={tagsRef} className="opacity-0">
-              <label htmlFor="tags" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {language === 'ar' ? 'الوسوم' : 'Tags'}
-              </label>
+              <div className="flex justify-between items-center mb-2">
+                <label htmlFor="tags" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {language === 'ar' ? 'الوسوم' : 'Tags'}
+                </label>
+                {tags.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setTags([])}
+                    className="text-sm text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 transition-colors"
+                  >
+                    {language === 'ar' ? 'مسح الوسوم' : 'Clear Tags'}
+                  </button>
+                )}
+              </div>
 
               {/* Previous Tags Suggestions */}
               {existingTags.length > 0 && (
@@ -315,7 +326,7 @@ export default function Add({ language, onAddPost, existingTags, toast, darkMode
                     onChange={handleTagInputChange}
                     onKeyDown={handleTagKeyDown}
                     className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={language === 'ar' ? 'اضغط Enter لإضافة وسم...' : 'Press Enter to add a tag...'}
+                    placeholder={language === 'ar' ? 'مثال: مقابلات_شخصية، نصائح_مهنية، تطوير' : 'e.g. interviews, career_tips, development'}
                   />
                   
                   {/* Tag Suggestions */}
@@ -387,7 +398,7 @@ export default function Add({ language, onAddPost, existingTags, toast, darkMode
                 onChange={(e) => setNotes(e.target.value)}
                 rows={4}
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder={language === 'ar' ? 'اكتب ملاحظاتك حول المنشور...' : 'Write your notes about the post...'}
+                placeholder={language === 'ar' ? 'نقاط مهمة من المنشور:\n- التحضير الجيد للمقابلة\n- الأسئلة الشائعة وكيفية الإجابة عليها\n- نصائح عن لغة الجسد والتواصل' : 'Key points from the post:\n- Interview preparation\n- Common questions and how to answer them\n- Body language and communication tips'}
               />
             </div>
 

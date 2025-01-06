@@ -144,6 +144,7 @@ export default function Notes({ language, posts, onDeletePost, onEditPost, setPa
   }, [language, setPageTitle]);
 
   const formatDate = (date) => {
+    if (!date) return '';
     return format(new Date(date), language === 'ar' ? 'dd MMMM yyyy hh:mm a' : 'dd MMMM yyyy hh:mm a', {
       locale: language === 'ar' ? arSA : enUS
     });
@@ -218,7 +219,7 @@ export default function Notes({ language, posts, onDeletePost, onEditPost, setPa
           </div>
 
           {/* Search and Filters */}
-          <div className="flex flex-col gap-4 mb-6">
+          <div ref={filtersRef} className="space-y-4 mb-6">
             {/* Search */}
             <div className="relative">
               <input
@@ -230,18 +231,6 @@ export default function Notes({ language, posts, onDeletePost, onEditPost, setPa
                 dir={language === 'ar' ? 'rtl' : 'ltr'}
               />
               <FaSearch className={`absolute top-1/2 transform -translate-y-1/2 ${language === 'ar' ? 'left-3' : 'right-3'} text-gray-400`} />
-              {/* Clear Filters Button */}
-              {isFiltersActive && (
-                <button
-                  onClick={clearAllFilters}
-                  className={`absolute top-1/2 transform -translate-y-1/2 ${language === 'ar' ? 'left-12' : 'right-12'} text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors`}
-                  title={language === 'ar' ? 'مسح الفلاتر' : 'Clear filters'}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
-                </button>
-              )}
             </div>
 
             {/* Other Filters */}
@@ -294,6 +283,19 @@ export default function Notes({ language, posts, onDeletePost, onEditPost, setPa
               </div>
             </div>
           </div>
+
+          {/* Clear Filters Button */}
+          {isFiltersActive && (
+            <div className="flex justify-center mb-6">
+              <button
+                onClick={clearAllFilters}
+                className="flex items-center gap-2 px-6 py-2.5 text-base font-medium text-white bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 rounded-xl shadow-sm transition-all duration-200 transform hover:scale-105"
+              >
+                <span>{language === 'ar' ? 'مسح جميع الفلاتر' : 'Clear All Filters'}</span>
+                <span className="text-lg">×</span>
+              </button>
+            </div>
+          )}
 
           {/* Active Filters Display */}
           {isFiltersActive && (

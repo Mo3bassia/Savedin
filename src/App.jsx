@@ -124,9 +124,15 @@ function AppContent() {
       return;
     }
 
+    // Keep the original createdAt
+    const updatedPost = {
+      ...editedPost,
+      createdAt: originalPost.createdAt
+    };
+
     setPosts(prevPosts => 
       prevPosts.map(post => 
-        post.id === editedPost.id ? editedPost : post
+        post.id === editedPost.id ? updatedPost : post
       )
     );
     toast.success(language === 'ar' ? 'تم تعديل المنشور بنجاح' : 'Post updated successfully', {
