@@ -13,7 +13,7 @@ gsap.registerPlugin(ScrollTrigger);
 export default function Notes({ language, posts, onDeletePost, onEditPost, setPageTitle }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [tagFilter, setTagFilter] = useState('all');
+  const [tagFilters, setTagFilters] = useState([]);
   const [dateFilter, setDateFilter] = useState('');
   const defaultFontSize = 'md';
   const [fontSize, setFontSize] = useLocalStorage('postsFontSize', defaultFontSize);
@@ -41,12 +41,12 @@ export default function Notes({ language, posts, onDeletePost, onEditPost, setPa
   const clearAllFilters = () => {
     setSearchQuery('');
     setStatusFilter('all');
-    setTagFilter('all');
+    setTagFilters([]);
     setDateFilter('');
   };
 
   // Check if any filter is active
-  const isFiltersActive = searchQuery || statusFilter !== 'all' || tagFilter !== 'all' || dateFilter;
+  const isFiltersActive = searchQuery || statusFilter !== 'all' || tagFilters.length > 0 || dateFilter;
 
   // Get unique tags from all posts
   const allTags = useMemo(() => {
@@ -65,15 +65,15 @@ export default function Notes({ language, posts, onDeletePost, onEditPost, setPa
 
         const matchesStatus = statusFilter === 'all' || post.status === statusFilter;
 
-        const matchesTag = tagFilter === 'all' || post.tags.includes(tagFilter);
+        const matchesTags = tagFilters.length === 0 || tagFilters.every(tag => post.tags.includes(tag));
 
         const matchesDate = dateFilter === '' || 
           new Date(post.createdAt).toLocaleDateString() === new Date(dateFilter).toLocaleDateString();
 
-        return matchesSearch && matchesStatus && matchesTag && matchesDate;
+        return matchesSearch && matchesStatus && matchesTags && matchesDate;
       })
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // Sort by date, newest first
-  }, [posts, searchQuery, statusFilter, tagFilter, dateFilter]);
+  }, [posts, searchQuery, statusFilter, tagFilters, dateFilter]);
 
   // Initial animations
   useEffect(() => {
@@ -199,7 +199,11 @@ export default function Notes({ language, posts, onDeletePost, onEditPost, setPa
 
   // Handle tag click to toggle filter
   const handleTagClick = (clickedTag) => {
-    setTagFilter(prev => prev === clickedTag ? 'all' : clickedTag);
+    setTagFilters(prevFilters =>
+      prevFilters.includes(clickedTag)
+        ? prevFilters.filter(tag => tag !== clickedTag)
+        : [...prevFilters, clickedTag]
+    );
   };
 
   return (
@@ -256,13 +260,13 @@ export default function Notes({ language, posts, onDeletePost, onEditPost, setPa
               {/* Tags Filter */}
               <div className="flex-1 min-w-[200px] relative">
                 <select
-                  value={tagFilter}
-                  onChange={(e) => setTagFilter(e.target.value)}
+                  value={tagFilters[tagFilters.length - 1] || 'all'}
+                  onChange={(e) => handleTagClick(e.target.value)}
                   className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent appearance-none cursor-pointer"
                   dir={language === 'ar' ? 'rtl' : 'ltr'}
                 >
                   <option value="all">{language === 'ar' ? 'جميع الوسوم' : 'All Tags'}</option>
-                  {Array.from(new Set(posts.flatMap(post => post.tags))).map(tag => (
+                  {allTags.map(tag => (
                     <option key={tag} value={tag}>{tag}</option>
                   ))}
                 </select>
@@ -270,6 +274,26 @@ export default function Notes({ language, posts, onDeletePost, onEditPost, setPa
                   <FaChevronDown className="text-gray-400 dark:text-gray-500" />
                 </div>
               </div>
+
+              {/* Selected Tags */}
+              {tagFilters.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {tagFilters.map(tag => (
+                    <span
+                      key={tag}
+                      className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-500 text-white"
+                    >
+                      {tag}
+                      <button
+                        onClick={() => handleTagClick(tag)}
+                        className="ml-2 hover:text-blue-200"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
 
               {/* Date Filter */}
               <div className="flex-1 min-w-[200px]">
@@ -311,9 +335,9 @@ export default function Notes({ language, posts, onDeletePost, onEditPost, setPa
                   {language === 'ar' ? 'الحالة: ' : 'Status: '}{statusFilter}
                 </span>
               )}
-              {tagFilter !== 'all' && (
+              {tagFilters.length > 0 && (
                 <span className="px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-700">
-                  {language === 'ar' ? 'التاج: ' : 'Tag: '}{tagFilter}
+                  {language === 'ar' ? 'الوسوم: ' : 'Tags: '}{tagFilters.join(', ')}
                 </span>
               )}
               {dateFilter && (
@@ -334,9 +358,9 @@ export default function Notes({ language, posts, onDeletePost, onEditPost, setPa
                   ? `تم العثور على ${filteredPosts.length} ${filteredPosts.length === 1 ? 'منشور' : 'منشورات'} من إجمالي ${posts.length}`
                   : `Found ${filteredPosts.length} ${filteredPosts.length === 1 ? 'post' : 'posts'} out of ${posts.length}`
                 }
-                {tagFilter !== 'all' && (
+                {tagFilters.length > 0 && (
                   <span className="mx-1">
-                    {language === 'ar' ? 'في تصنيف' : 'in tag'} "{tagFilter}"
+                    {language === 'ar' ? 'في تصنيف' : 'in tags'} "{tagFilters.join(', ')}"
                   </span>
                 )}
                 {statusFilter !== 'all' && (
@@ -430,13 +454,13 @@ export default function Notes({ language, posts, onDeletePost, onEditPost, setPa
                             key={tagIndex}
                             onClick={() => handleTagClick(tag)}
                             className={`inline-flex items-center px-3 py-1 rounded-full text-sm transition-all
-                              ${tagFilter === tag 
-                                ? 'bg-blue-500 text-white hover:bg-blue-600' 
+                              ${tagFilters.includes(tag) 
+                                ? 'bg-blue-500 text-white' 
                                 : 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 hover:bg-blue-200 dark:hover:bg-blue-800'
                               } cursor-pointer`}
                           >
                             {tag}
-                            {tagFilter === tag && (
+                            {tagFilters.includes(tag) && (
                               <span className="ml-1.5 text-xs">×</span>
                             )}
                           </button>

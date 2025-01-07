@@ -17,6 +17,7 @@ export default function Edit({ language, posts, onEditPost, existingTags, setPag
   const [tags, setTags] = useState(post?.tags || []);
   const [status, setStatus] = useState(post?.status || 'to-read');
   const [notes, setNotes] = useState(post?.notes || '');
+  const [newTag, setNewTag] = useState('');
 
   useEffect(() => {
     setPageTitle(language === 'ar' ? 'تعديل منشور' : 'Edit Post');
@@ -46,13 +47,11 @@ export default function Edit({ language, posts, onEditPost, existingTags, setPag
         : [...prev, tag]
     );
   };
-
   const handleAddCustomTag = (e) => {
     e.preventDefault();
-    const customTag = e.target.elements.customTag.value.trim();
-    if (customTag && !tags.includes(customTag)) {
-      setTags(prev => [...prev, customTag]);
-      e.target.elements.customTag.value = '';
+    if (newTag.trim() && !tags.includes(newTag.trim())) {
+      setTags(prev => [...prev, newTag.trim()]);
+      setNewTag('');
     }
   };
 
@@ -135,12 +134,20 @@ export default function Edit({ language, posts, onEditPost, existingTags, setPag
                 ))}
               </div>
               <div className="flex gap-2">
-                <input
-                  type="text"
-                  name="customTag"
-                  placeholder={language === 'ar' ? 'أضف تصنيف جديد' : 'Add custom tag'}
-                  className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+              <input
+  type="text"
+  name="customTag"
+  value={newTag}
+  onChange={(e) => setNewTag(e.target.value)}
+  placeholder={language === 'ar' ? 'أضف تصنيف جديد' : 'Add custom tag'}
+  className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+  onKeyDown={(e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddCustomTag(e);
+    }
+  }}
+/>
                 <button
                   type="button"
                   onClick={handleAddCustomTag}

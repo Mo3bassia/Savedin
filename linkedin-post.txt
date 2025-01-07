@@ -34,4 +34,7 @@
 
 المشروع مفتوح المصدر ومتاح على GitHub لمن يريد التجربة أو المساهمة!
 
+🔗 رابط المشروع: https://savedin-mo3bassias-projects.vercel.app
+📂 كود المشروع: https://github.com/Mo3bassia/savedin
+
 #React #WebDevelopment #JavaScript #OpenSource #Programming #Codeium #Windsurf
