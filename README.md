@@ -17,6 +17,7 @@ A modern web application for saving and organizing LinkedIn posts, built with Re
   - Dark/Light mode
   - Smooth animations
   - Responsive design
+  - Progressive Web App (PWA) with offline support
 
 - **Analytics**
   - Detailed statistics

@@ -12,6 +12,7 @@ That's when I decided to create SavedIn - a tool that transforms how we save and
 • Detailed statistics with visual charts
 • Data backup/restore functionality
 • Smooth animations and transitions
+• Progressive Web App (PWA) with offline support
 
 🛠️ Tech Stack:
 • React
@@ -20,6 +21,7 @@ That's when I decided to create SavedIn - a tool that transforms how we save and
 • GSAP for animations
 • React Router
 • React Toastify
+• Vite PWA
 
 💡 Challenges & Solutions:
 • Designing a bilingual user interface
